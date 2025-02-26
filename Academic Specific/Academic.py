@@ -37,7 +37,7 @@ with open(deepspeed_config_path, "r") as ds_file:
     deepspeed_config = json.load(ds_file)
 
 config = {
-    "model_name": "mistralai/Mistral-7B-Instruct-v0.3",  # Mistral for annotation
+    "model_name": "meta-llama/Llama-3.1-8B-Instruct",  # Mistral for annotation
     "fine_tune_model": "aubmindlab/bert-base-arabertv02",  # AraBERT for classification
     "threshold": 2,  # Minimum score for high-quality content
     "annotation_samples": 5000,  # Increase annotated samples for better learning
