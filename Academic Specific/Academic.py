@@ -48,16 +48,15 @@ config = {
     "learning_rate": 1e-5,  # Adjust learning rate for large model
     "gradient_accumulation_steps": 8,  # Helps handle large models with small batch sizes
     "use_deepspeed": True,  # Enable DeepSpeed for efficient training
-    # "use_fp16": True,  # Mixed precision to reduce memory usage
     "dataset_dir": "/ibex/user/abuhanjt/test/dataset/",  
     "output_dir": "/ibex/user/abuhanjt/test/output/",
     "deepspeed_config_path": deepspeed_config_path
 }
 
-# Initialize W&B
+# Initialize Weights & Biasis
 wandb.init(
     project="Academic_Specific",  
-    name="experiment_243", 
+    name="experiment_250", 
     config=config 
 )
 
@@ -67,30 +66,29 @@ os.makedirs(config["output_dir"], exist_ok=True)
 ## Arabic Rubric Prompt
 def get_arabic_prompt(text):
     return f"""
-<|system|>
-فيما يلي مقتطف من صفحة ويب. قم بتقييم مدى فائدته كمحتوى تعليمي باستخدام نظام تقييم مكون من 5 نقاط تراكمية، وفقًا للمعايير التالية:
+    <|system|>
+    فيما يلي مقتطف من صفحة ويب. قم بتقييم مدى فائدته كمحتوى تعليمي باستخدام نظام تقييم مكون من 5 نقاط تراكمية، وفقًا للمعايير التالية:
 
- *معايير التقييم التراكمي (مع مرونة في التقدير بناءً على جودة المحتوى(:
-•	أضف 1 نقطة: إذا كان النص يحتوي على بعض المعلومات الأساسية المفيدة، حتى لو كان يتضمن محتوى غير تعليمي مثل الإعلانات أو المواد الترويجية، لكنه لا يساهم في التعلم بشكل واضح.
-•	أضف 2 نقاط: إذا كان النص يتناول عناصر ذات صلة بالتعليم، لكنه لا يلتزم تمامًا بالمعايير الأكاديمية، وقد يكون فيه مزيج من المعلومات المفيدة وغير المفيدة أو يقدم نظرة عامة دون تفاصيل كافية.
-•	أضف 3 نقاط: إذا كان النص مناسبًا للاستخدام التعليمي، يحتوي على مفاهيم رئيسية ذات صلة بالمناهج المدرسية، وهو واضح، لكنه قد يفتقر إلى بعض التفاصيل أو يحتوي على معلومات إضافية ليست ضرورية.
-•	أضف 4 نقاط: إذا كان النص منظمًا، واضحًا، ومتناسقًا، ويمكن استخدامه كمرجع تعليمي جيد. يشبه فصلًا دراسيًا من كتاب مدرسي، يحتوي على أمثلة وتمارين، ويقدم معلومات دقيقة، حتى لو كان هناك بعض التفاصيل المفقودة.
-•	أضف 5 نقاط: إذا كان النص عالي الجودة تعليميًا، يمكن استخدامه مباشرة في التدريس، يحتوي على محتوى شامل، منظم بالكامل، بشروحات واضحة وأمثلة وتمارين، دون أي معلومات غير ضرورية أو غموض. يمكن أن يكون مثاليًا كجزء من مادة تعليمية رسمية.
+    *معايير التقييم التراكمي (مع مرونة في التقدير بناءً على جودة المحتوى(:
+    •	أضف 1 نقطة: إذا كان النص يحتوي على بعض المعلومات الأساسية المفيدة، حتى لو كان يتضمن محتوى غير تعليمي مثل الإعلانات أو المواد الترويجية، لكنه لا يساهم في التعلم بشكل واضح.
+    •	أضف 2 نقاط: إذا كان النص يتناول عناصر ذات صلة بالتعليم، لكنه لا يلتزم تمامًا بالمعايير الأكاديمية، وقد يكون فيه مزيج من المعلومات المفيدة وغير المفيدة أو يقدم نظرة عامة دون تفاصيل كافية.
+    •	أضف 3 نقاط: إذا كان النص مناسبًا للاستخدام التعليمي، يحتوي على مفاهيم رئيسية ذات صلة بالمناهج المدرسية، وهو واضح، لكنه قد يفتقر إلى بعض التفاصيل أو يحتوي على معلومات إضافية ليست ضرورية.
+    •	أضف 4 نقاط: إذا كان النص منظمًا، واضحًا، ومتناسقًا، ويمكن استخدامه كمرجع تعليمي جيد. يشبه فصلًا دراسيًا من كتاب مدرسي، يحتوي على أمثلة وتمارين، ويقدم معلومات دقيقة، حتى لو كان هناك بعض التفاصيل المفقودة.
+    •	أضف 5 نقاط: إذا كان النص عالي الجودة تعليميًا، يمكن استخدامه مباشرة في التدريس، يحتوي على محتوى شامل، منظم بالكامل، بشروحات واضحة وأمثلة وتمارين، دون أي معلومات غير ضرورية أو غموض. يمكن أن يكون مثاليًا كجزء من مادة تعليمية رسمية.
 
-إذا كان النص يبدو تعليميًا ولكنه لا يحصل على تقييم مرتفع، قم بمراعاة أسلوب تقديم المعلومات ومدى فائدتها الفعلية للطالب، بدلاً من الاعتماد فقط على اكتمال كل عنصر.
+    إذا كان النص يبدو تعليميًا ولكنه لا يحصل على تقييم مرتفع، قم بمراعاة أسلوب تقديم المعلومات ومدى فائدتها الفعلية للطالب، بدلاً من الاعتماد فقط على اكتمال كل عنصر.
 
-* النص المطلوب تقييمه:
-{text}
+    * النص المطلوب تقييمه:
+    {text}
 
-*التقييم النهائي:
-يرجى تقديم إجابة دقيقة ومباشرة وفقًا للمعايير أعلاه:
-1.	قدم تبريرًا واضحًا ومباشرًا يوضح سبب اختيارك لهذه الدرجة بناءً على محتوى النص وليس فقط معايير التقييم العامة.
-2.	استخدم التنسيق التالي للنتيجة النهائية: ( التقييم التعليمي : < مجموع النقاط> 5/)
+    *التقييم النهائي:
+    يرجى تقديم إجابة دقيقة ومباشرة وفقًا للمعايير أعلاه:
+    1.	قدم تبريرًا واضحًا ومباشرًا يوضح سبب اختيارك لهذه الدرجة بناءً على محتوى النص وليس فقط معايير التقييم العامة.
+    2.	استخدم التنسيق التالي للنتيجة النهائية: ( التقييم التعليمي : <مجموع النقاط>/ 5)
 
-
-<|assistant|>
-استنادًا إلى المعايير، التقييم هو:
-"""
+    <|assistant|>
+    استنادًا إلى المعايير، التقييم هو:
+    """
 
 
 
@@ -160,12 +158,12 @@ def extract_score_and_evaluation(output):
 
     return score, evaluation_text
 
-## Step 2: Annotate Data Locally and save it 
 
+## Step 2: Annotate Data Locally and save it 
 # Get SLURM Task ID  
 slurm_task_id = os.getenv("SLURM_ARRAY_TASK_ID", "0")
 # Define unique save path per SLURM task
-ANNOTATION_SAVE_PATH = f"/ibex/user/abuhanjt/test/output/balanced_annotations.json"
+ANNOTATION_SAVE_PATH = f"/ibex/user/abuhanjt/test/output/annotations_{slurm_task_id}.json"
 print(f"Annotations will be saved to: {ANNOTATION_SAVE_PATH}")
 
 # Ensure the annotation file exists (creates an empty JSON file if missing)
@@ -220,7 +218,7 @@ def annotate_samples(samples, tokenizer, model):
         inputs["attention_mask"] = (inputs["input_ids"] != tokenizer.pad_token_id).to(device)
 
         generation_config = GenerationConfig(
-            max_new_tokens=200,
+            max_new_tokens=100,
             do_sample=True,
             temperature=0.5,  
             top_k=40,
@@ -342,39 +340,7 @@ def predict_with_arabert(unlabeled_data, model, tokenizer):
     return predictions
 
 
-## Step 5: Validate Model
-def validate_model(validation_data, model, tokenizer):
-    model.to(device)
-    true_labels = []
-    predicted_labels = []
-
-    for item in validation_data:
-        text = item["text"]
-        true_labels.append(item["scores"])
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-        inputs = {key: val.to(device) for key, val in inputs.items()}
-
-        with torch.no_grad():
-            outputs = model(**inputs)
-        logits = outputs.logits
-        predicted_label = logits.argmax(dim=-1).item()
-        predicted_labels.append(predicted_label)
-
-    f1 = f1_score(true_labels, predicted_labels, average="macro")
-    accuracy = accuracy_score(true_labels, predicted_labels)
-    precision = precision_score(true_labels, predicted_labels, average="macro", zero_division=0)
-    recall = recall_score(true_labels, predicted_labels, average="macro", zero_division=0)
-    conf_matrix = confusion_matrix(true_labels, predicted_labels)
-
-    print(f"Validation F1 Score: {f1:.2f}")
-    print(f"Validation Accuracy: {accuracy:.2f}")
-    print(f"Validation Precision: {precision:.2f}")
-    print(f"Validation Recall: {recall:.2f}")
-    print("Confusion Matrix:")
-    print(conf_matrix)
-
-
-## Step 6: Filter Dataset
+## Step 5: Filter Dataset
 def filter_dataset(annotated_data, threshold):
     return [
         doc for doc in annotated_data
@@ -436,7 +402,7 @@ def main_pipeline():
     # Extract labels for stratified splitting
     labels = [item["scores"] for item in filtered_data]
 
-    # ✅ Stratified train-validation split (ensures class balance)
+    # Stratified train-validation split (ensures class balance)
     train_data, val_data = train_test_split(
         filtered_data,
         test_size=config["validation_samples"] / len(filtered_data),
@@ -460,15 +426,11 @@ def main_pipeline():
     predictions = predict_with_arabert(remaining_data, model_arabert, tokenizer_arabert)
     print(f"Predicted {len(predictions)} samples with fine-tuned AraBERT.")
 
-    # Step 7: Validate the fine-tuned model on a subset of the annotated data
-    validation_data = annotated_data[:config["validation_samples"]]
-    validate_model(validation_data, model_arabert, tokenizer_arabert)
-
-    # Step 8: Filter the predictions to include only high-quality samples
+    # Step 7: Filter the predictions to include only high-quality samples
     filtered_data = filter_dataset(predictions, config["threshold"])
     print(f"Filtered dataset contains {len(filtered_data)} high-quality samples.")
 
-    # Step 9: Save processed data
+    # Step 8: Save processed data
     output_file = os.path.join(config["output_dir"], f"processed_{os.path.basename(dataset_file)}")
     with open(output_file, "w", encoding="utf-8") as file:
         json.dump(filtered_data, file, ensure_ascii=False, indent=4)

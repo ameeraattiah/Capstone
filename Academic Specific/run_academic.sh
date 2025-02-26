@@ -34,17 +34,18 @@ echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
 echo "Total dataset files found: ${#DATA_FILES[@]}"
 echo "Files in dataset: ${DATA_FILES[@]}"
 
-# # Ensure SLURM_ARRAY_TASK_ID is within range
-# if [ "$SLURM_ARRAY_TASK_ID" -ge "${#DATA_FILES[@]}" ]; then
-#     echo "No file to process for task ID $SLURM_ARRAY_TASK_ID"
-#     exit 0
-# fi
+# Ensure SLURM_ARRAY_TASK_ID is within range
+if [ "$SLURM_ARRAY_TASK_ID" -ge "${#DATA_FILES[@]}" ]; then
+    echo "No file to process for task ID $SLURM_ARRAY_TASK_ID"
+    exit 0
+fi
 
 # Assign dataset file
-FILE_TO_PROCESS=${DATA_FILES[0]}
+FILE_TO_PROCESS=${DATA_FILES[$SLURM_ARRAY_TASK_ID]}
 
 echo "Processing file: $FILE_TO_PROCESS"
 
 # Run script with DeepSpeed to enable model parallelism
 deepspeed --num_gpus=1 Academic.py "$FILE_TO_PROCESS"
+
 # python Academic.py "$FILE_TO_PROCESS"
