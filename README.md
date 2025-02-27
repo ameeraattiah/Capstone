@@ -1,6 +1,6 @@
-# **Arabic NLP Dataset Processing Pipeline**  
+# **Unlocking the Potential of Arabic NLP: High-Quality Dataset and Preprocessing Tool for Arabic Large Language Models**  
 
-This project focuses on **processing large-scale Arabic text data** from **Common Crawl** and other sources to create **high-quality datasets** for training Arabic **Large Language Models (LLMs)**. The pipeline **cleans, filters, annotates, fine-tunes, and evaluates** the dataset before integration with existing LLMs.  
+This project aims to **build a low-resource, high-quality Arabic dataset** focused on **academic content** while developing an **automated tool** to streamline the data processing pipeline. The system **collects, cleans, filters, annotates, fine-tunes, and evaluates** Arabic text to create structured datasets for **training Arabic Large Language Models (LLMs)** with minimal manual intervention. 🚀
 
 ### 📌 **Project Status:**  
    - ✅ Data collection, cleaning, and annotation are complete
@@ -30,11 +30,11 @@ Our data processing pipeline follows these main steps:
 
 5. **AI-Based Evaluation**  
    - Benchmarks: **COPA-ar, HellaSwag-ar, PIQA-ar**  
-   - **Relevant Scripts:** Upcoming...
+   - **Relevant Scripts:** *Upcoming...*
 
 6. **Integration with LLMs**  
    - Final step: Use the processed data to **fine-tune an LLM or integrate with an existing model**  
-   - **Relevant Scripts:** Upcoming...
+   - **Relevant Scripts:** *Upcoming...*
 ---
 
 ## **Repository Structure & Script Descriptions**  
@@ -81,7 +81,7 @@ Our data processing pipeline follows these main steps:
 
 ---
 
-#### **📌 Key Technologies Used**
+### **📌 Key Technologies Used**
 - **Transformers (Hugging Face)** – LLaMA & AraBERT  
 - **DeepSpeed** – Efficient model training  
 - **SLURM** – Parallel job execution on KAUST'S Ibex HPC  
