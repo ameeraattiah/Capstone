@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Dataset - Nukhba Labs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module" src="./firebase.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: url('backgrounds/dashboard-bg.png') no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      padding-top: 8rem;
+    }
+
+    main {
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 2rem;
+      padding: 2rem 3rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      max-width: 720px;
+      width: 90%;
+      text-align: center;
+    }
+    nav {
+      width: 100%;
+      padding: 1rem 5rem;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      position: fixed;        /* ✅ Fix it to the top */
+      top: 0;
+      left: 0;
+      background: transparent; /* Optional: or use white if you want a solid header */
+      z-index: 1000;          /* ✅ Ensure it appears above everything else */
+    }
+
+    nav .logo {
+      color: white;
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    nav .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    nav .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.1rem;     /* slightly larger */
+      font-weight: 600;      /* bold */
+      transition: opacity 0.3s;
+    }
+    h2 {
+      color: #5A7A99;
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+    }
+
+    .upload-box {
+      border: 2px dashed #4d7ca8;
+      padding: 2rem;
+      background: #e0edf8;
+      border-radius: 1rem;
+      transition: background-color 0.3s, border-color 0.3s;
+      cursor: pointer;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .upload-box.drag-over {
+      border-color: #2e5c85;
+      background-color: #d0e0f2;
+    }
+
+    .upload-box input[type="file"] {
+      display: none;
+    }
+
+    #dropText {
+      font-size: 1rem;
+      color: #264866;
+      font-weight: 600;
+    }
+
+    .cleaning-section-title,
+    .format-section-title {
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.6rem;
+      font-size: 1.1rem;
+      color: #264866;
+    }
+
+    /* ✅ NEW CLEAN GRID */
+    .steps-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .option-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 180px);
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    /* ✅ BUTTON STYLING */
+    .option-btn {
+      width: 180px;
+      height: 45px;
+      border: none;
+      background: #5a7a99;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.3s ease;
+    }
+
+    .option-btn:hover,
+    .option-btn.active {
+      background-color: #3e5a74;
+    }
+
+    /* ✅ SELECT ALL SPECIAL STYLE */
+    .select-all {
+      background-color: #1e2e3f;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      height: 45px;
+      width: 180px;
+    }
+
+    /* ✅ FILE FORMAT */
+    .format-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 0.8rem; /* Reduced space */
+    }
+
+    .format-group label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: #f4f7fb;
+      padding: 0.6rem 1.2rem;
+      font-weight: 500;
+    }
+
+    .format-group input[type="radio"] {
+      display: none;
+    }
+
+    .format-group input[type="radio"]:checked + span {
+      background: #d0e3f0;
+      border-radius: 8px;
+      padding: 0.2rem 0.5rem;
+      color: #264866;
+    }
+
+    /* ✅ PROCESS BUTTON */
+    .process-btn {
+      background-color: #264866;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      margin: 1rem auto 0 auto;
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+
+    .process-btn:hover {
+      background-color: #f5f0e6;
+      color: #1a1a1a;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #5c6d5a;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: black;
+    }
+
+  </style>
+</head>
+<body>
+    <nav>
+<!--     <a href="index.html" class="logo">Nukhba Labs</a> -->
+
+    <div class="nav-links" id="nav-links">
+      <!-- Links will be injected here based on auth -->
+    </div>
+  </nav>
+  <main>
+    <h2>Upload Your Arabic Dataset</h2>
+
+    <div class="upload-box" id="dropZone">
+      <p id="dropText">📁 Drop your file here or click to upload</p>
+      <input type="file" id="fileInput" accept=".csv,.json,.tsv,.xlsx" />
+    </div>
+
+    <div class="cleaning-section-title">Choose cleaning steps:</div>
+
+    <div class="steps-container">
+      <div class="option-buttons">
+        <button class="option-btn select-all" id="selectAllBtn">SELECT ALL</button>
+        <button class="option-btn" data-value="tokenization">Tokenization</button>
+        <button class="option-btn" data-value="normalization">Normalization</button>
+        <button class="option-btn" data-value="deduplication">Deduplication</button>
+        <button class="option-btn" data-value="diacritics">Diacritics</button>
+        <button class="option-btn" data-value="blocklist">Blocklist</button>
+        <button class="option-btn" data-value="language">Language Detection</button>
+        <button class="option-btn" data-value="html">HTML Cleaning</button>
+        <button class="option-btn" data-value="noise">Noise Removal</button>
+      </div>
+    </div>
+
+
+    <div class="format-section-title">Choose file format:</div>
+    <div class="format-group" role="group" aria-label="File format">
+      <label class="radio-btn">
+        <input type="radio" name="format" value="csv" checked>
+        <span>CSV</span>
+      </label>
+      <label class="radio-btn">
+        <input type="radio" name="format" value="json">
+        <span>JSON</span>
+      </label>
+      <label class="radio-btn">
+        <input type="radio" name="format" value="xlsx">
+        <span>XLSX</span>
+      </label>
+    </div>
+
+    <button class="process-btn" id="uploadBtn">Process Dataset</button>
+    <p id="status"></p>
+  </main>
+
+  <footer>
+    © 2025 Nukhba Labs. All rights reserved.
+  </footer>
+  <script type="module">
+    import { auth } from './firebase.js';
+    import { signOut } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-auth.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-auth.js";
+    import { db } from './firebase.js';
+    import { doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-firestore.js";
+
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const dropText = document.getElementById('dropText');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const status = document.getElementById('status');
+    const selectedOptions = new Set();
+// Navbar dynamic rendering
+    const navLinks = document.getElementById('nav-links');
+
+    function renderNav(isLoggedIn) {
+      if (isLoggedIn) {
+        navLinks.innerHTML = `
+          <a href="dashboard.html" style="margin-top: 10px; font-weight: bold; font-size: 1.1rem;">Dashboard</a>
+          <a href="https://ameeraattiah.github.io/nukhba-labs/" onclick="logout()" style="margin-top: 10px; font-weight: bold; font-size: 1.1rem;">Logout</a>
+        `;
+      } else {
+        window.location.href = "login.html";
+      }
+    }
+
+    function logout() {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    }
+    // ✅ Drag & Drop logic
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        fileInput.files = e.dataTransfer.files;
+        dropText.textContent = `📄 ${file.name}`;
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        dropText.textContent = `📄 ${fileInput.files[0].name}`;
+      }
+    });
+
+    // ✅ Option button selection
+    document.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const value = btn.dataset.value;
+        btn.classList.toggle('active');
+        if (selectedOptions.has(value)) {
+          selectedOptions.delete(value);
+        } else {
+          selectedOptions.add(value);
+        }
+      });
+    });
+    document.getElementById('selectAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('.option-btn:not(.select-all)').forEach(btn => {
+      const value = btn.dataset.value;
+      selectedOptions.add(value);
+      btn.classList.add('active');
+    });
+  });
+
+
+    // ✅ Auth check + Upload
+    onAuthStateChanged(auth, user => {
+      renderNav(!!user); // 🔁 this renders your nav links dynamically
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      uploadBtn.addEventListener('click', async () => {
+        status.textContent = "";
+        const file = fileInput.files[0];
+        if (!file) {
+          status.textContent = "⚠️ Please select a file.";
+          return;
+        }
+
+        if (selectedOptions.size === 0) {
+          status.textContent = "⚠️ Please select at least one cleaning option.";
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        selectedOptions.forEach(opt => formData.append('options[]', opt));
+        const downloadFormat = document.querySelector('input[name="format"]:checked').value;
+        formData.append('format', downloadFormat);
+
+        status.textContent = "⏳ Processing...";
+
+        try {
+          const res = await fetch('https://nlpulse-cleaner-backend.onrender.com/process', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!res.ok) {
+            const error = await res.json();
+            status.textContent = `❌ ${error.error || "Processing failed."}`;
+            return;
+          }
+
+          const text = await res.text();
+          // Force download after processing
+          const blob = new Blob([text], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.name.replace(/\.[^/.]+$/, `_cleaned.${downloadFormat}`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          localStorage.setItem("latestDatasetText", text);  // for preview
+          localStorage.setItem("latestDatasetFormat", downloadFormat);  // optional
+          localStorage.setItem("latestDatasetURL", url);   // for download again
+
+          const userDocRef = doc(db, "users", user.uid);
+          await updateDoc(userDocRef, {
+            history: arrayUnion({
+              filename: file.name.replace(/\.[^/.]+$/, `_cleaned.${downloadFormat}`),
+              date: new Date().toLocaleString(),
+              downloadUrl: url  // ✅ this is what dashboard.html needs!
+
+            })
+          });
+
+          setTimeout(() => {
+            window.location.href = "preview.html";
+          }, 500);
+
+        } catch (err) {
+          console.error(err);
+          status.textContent = "❌ Error processing the dataset.";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

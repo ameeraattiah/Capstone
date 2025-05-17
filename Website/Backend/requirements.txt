@@ -1,0 +1,6 @@
+Flask
+pandas
+flask-cors
+openpyxl
+nltk
+unidecode

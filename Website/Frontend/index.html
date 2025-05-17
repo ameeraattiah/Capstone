@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Nukhba Labs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      overflow-x: hidden;
+      background-color: #ffffff;
+    }
+
+    section {
+      position: relative;
+    }
+
+    section img {
+      width: 100%;
+      display: block;
+    }
+
+    .button {
+      position: absolute;
+      right: 100px;
+      font-size: 1.1rem;
+      padding: 12px 28px;
+      background-color: #e0e0e0;
+      color: #000;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s, color 0.3s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .button .arrow {
+      font-size: 1.4rem;
+      transition: color 0.3s;
+    }
+
+    .button:hover {
+      background-color: #004b8d;
+      color: white;
+    }
+
+    .button:hover .arrow {
+      color: white;
+    }
+
+    .login-btn {
+      bottom: 975px;
+    }
+
+    .video-btn {
+      bottom: 905px;
+    }
+  </style>
+</head>
+<body>
+
+  <section>
+    <img src="first_page.png" alt="Nukhba Labs Homepage">
+    
+    <!-- Login Button -->
+    <a href="login.html" class="button login-btn" style="position:absolute;">
+      تسجيل الدخول <span class="arrow">←</span>
+    </a>
+
+    <!-- Video Button -->
+    <a href="https://youtu.be/OG0hT_p5bFU?si=ueQMCTSW5GYWwVZx" target="_blank" class="button video-btn" style="position:absolute;">
+      شاهد الفيديو التوضيحي
+    </a>
+  </section>
+
+</body>
+</html>

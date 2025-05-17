@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - NLPulse Cleaner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module" src="./firebase.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: url('backgrounds/dashboard-bg.png') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-height: 100vh;
+    }
+    nav {
+      width: 100%;
+      padding: 1rem 5rem;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+
+    nav .logo {
+      color: white;
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    nav .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    nav .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.1rem;     /* slightly larger */
+      font-weight: 600;      /* bold */
+      transition: opacity 0.3s;
+    }
+
+
+    nav .nav-links a:hover {
+      opacity: 0.8;
+    }
+
+    main {
+      flex: 1;
+      padding: 4rem 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    
+    main h1 {
+      font-size: 4rem;
+      color: white;
+      margin-top: 1rem;
+      font-weight: 800;
+    }
+    
+    main h3 {
+      font-size: 2.4rem;
+      color: white;
+      font-weight: 500;
+      margin-bottom: 2rem;
+    }
+
+
+    .upload-button {
+      background-color: #264866;
+      color: white;
+      text-decoration: none;
+      padding: 0.8rem 3.5rem; /* wider padding */
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 1.3rem;      /* slightly larger */
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+      margin-bottom: 2.5rem;
+      min-width: 340px;       /* locks it to a decent width */
+    }
+    .upload-button:hover {
+      background-color: #f5f0e6;  /* light beige */
+      color: #1a1a1a;             /* dark text */
+      transform: translateY(-2px);
+    }
+    .history-list {
+      width: 100%;
+      max-width: 1000px; /* 1000px is wide but not extreme */
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 2rem;
+      box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .history-item {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #eee;
+      font-size: 1rem;
+      color: #5c6d5a;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    footer {
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+<!--     <a href="index.html" class="logo">Nukhba Labs</a> -->
+    
+    <div class="nav-links" id="nav-links">
+      <!-- Links will be injected here based on auth -->
+    </div>
+  </nav>
+
+  <main>
+<!--     <img src="your-logo.png" alt="Nukhba Labs Logo" style="height: 60px;"> -->
+    
+    <h1>WELCOME</h1>
+    <h3>To Your Dashboard</h3>
+    <a href="upload.html" class="upload-button">Upload New Dataset</a>
+
+    <div class="history-list" id="historyList">
+      <!-- History entries will appear here -->
+    </div>
+  </main>
+
+  <footer>
+    © 2025 Nukhba Labs. All rights reserved.
+  </footer>
+
+  <script type="module">
+    import { auth } from './firebase.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-firestore.js";
+    import { db } from './firebase.js';
+
+    // Navbar dynamic rendering
+    const navLinks = document.getElementById('nav-links');
+
+    function renderNav(isLoggedIn) {
+      if (isLoggedIn) {
+        navLinks.innerHTML = `
+          <a href="upload.html" style="margin-top: 10px; font-weight: bold; font-size: 1.1rem;">Upload</a>
+          <a href="https://ameeraattiah.github.io/nukhba-labs/" onclick="logout()" style="margin-top: 10px; font-weight: bold; font-size: 1.1rem;">Logout</a>
+        `;
+      } else {
+        window.location.href = "login.html";
+      }
+    }
+
+    function logout() {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      renderNav(!!user);
+    });
+    const historyList = document.getElementById('historyList');
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "login.html";
+    
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const history = userDoc.exists() && userDoc.data().history ? userDoc.data().history : [];
+    
+      if (history.length === 0) {
+        historyList.innerHTML = '<p style="text-align:center;">🛑 No datasets cleaned yet.</p>';
+      } else {
+        historyList.innerHTML = history.map(item => `
+          <div class="history-item">
+            📂 <a href="${item.downloadUrl}" download="${item.filename}" style="color: #5A7A99; text-decoration: none;">
+              ${item.filename}
+            </a> — <i>${item.date}</i>
+          </div>
+        `).reverse().join('');
+      }
+    });
+
+  </script>
+
+</body>
+</html>

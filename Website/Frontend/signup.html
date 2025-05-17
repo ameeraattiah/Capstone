@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up – Nukhba Labs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script type="module" src="./firebase.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: url('backgrounds/woman.png') no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding-left: 10%;
+    }
+
+    nav {
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .logo {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: white;
+      text-decoration: none;
+    }
+
+    .container {
+      width: 400px;
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      position: relative;
+    }
+
+    #close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    h2 {
+      color: #4b6174;
+      margin-bottom: 1.5rem;
+      clear: both;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #5a7d9a;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .or-divider:not(:empty)::before {
+      margin-right: .75em;
+    }
+
+    .or-divider:not(:empty)::after {
+      margin-left: .75em;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .social-btn.white {
+      background-color: white;
+      color: black;
+    }
+
+    .social-btn.black {
+      background-color: #1a1a1a;
+      color: white;
+      border: none;
+    }
+
+    p {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    p a {
+      color: #5a7d9a;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<!--   <nav>
+    <a href="index.html" class="logo">Nukhba Labs</a>
+  </nav> -->
+
+  <div class="container">
+    <span id="close-btn" onclick="window.location.href='https://ameeraattiah.github.io/nukhba-labs/'">×</span>
+    <h2>Create Your Account</h2>
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button id="signupBtn">Sign Up</button>
+
+    <div class="or-divider">OR</div>
+
+    <button class="social-btn white" id="googleSignup">
+      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
+      Sign up with Google
+    </button>
+    <button class="social-btn black" id="githubSignup">
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/github.svg" alt="GitHub" width="20" style="filter: invert(1);" />
+      Sign up with GitHub
+    </button>
+
+    <p>Already have an account? <a href="login.html">Login</a></p>
+    <p id="status" style="color:#d35400;"></p>
+  </div>
+
+  <script type="module">
+    import { auth, db, provider, githubProvider } from './firebase.js';
+    import {
+      createUserWithEmailAndPassword,
+      signInWithPopup
+    } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-auth.js";
+    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-firestore.js";
+
+    const usernameInput = document.getElementById("username");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const status = document.getElementById("status");
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const username = usernameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!username || !email || !password) {
+        status.textContent = "Please fill in all required fields.";
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+        await setDoc(doc(db, "users", uid), {
+          username,
+          email,
+          history: []
+        });
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+
+    document.getElementById("googleSignup").addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, provider);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+
+    document.getElementById("githubSignup").addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, githubProvider);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>

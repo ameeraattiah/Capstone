@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login – NLPulse Cleaner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module" src="./firebase.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: url('backgrounds/coffee.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    nav {
+      background-color: transparent;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .logo {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: white;
+      text-decoration: none;
+    }
+
+    .container {
+      position: absolute;
+      top: 15%;
+      right: 10%;
+      width: 400px;
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    #closeBtn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    h2 {
+      color: #4A628A;
+      margin-bottom: 1.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    button.primary-btn {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #5A7592;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .or-divider:not(:empty)::before {
+      margin-right: .75em;
+    }
+
+    .or-divider:not(:empty)::after {
+      margin-left: .75em;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .social-btn.white {
+      background-color: white;
+      color: black;
+    }
+
+    .social-btn.black {
+      background-color: #24292f;
+      color: white;
+      border: none;
+    }
+
+    p {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    p a {
+      color: #4A628A;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<!--   <nav>
+    <a href="index.html" class="logo">Nukhba Labs</a>
+  </nav> -->
+
+  <div class="container">
+    <span id="closeBtn">&times;</span>
+    <h2>Welcome to Nukhba Labs!</h2>
+
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button class="primary-btn" id="loginBtn">Login</button>
+
+    <div class="or-divider">OR</div>
+
+    <button class="social-btn white" id="googleLogin">
+      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" style="margin-right: 8px;">
+      Log in with Google
+    </button>
+    <button class="social-btn black" id="githubLogin">
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/github.svg" alt="GitHub" width="20" style="filter: invert(1); margin-right: 8px;">
+      Log in with GitHub
+    </button>
+
+    <p>Don't have an account? <a href="signup.html">Sign up</a></p>
+    <p id="status" style="color:#d35400;"></p>
+  </div>
+
+  <script type="module">
+    import { auth, db, githubProvider, provider } from './firebase.js';
+    import {
+      signInWithEmailAndPassword,
+      signInWithPopup
+    } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-auth.js";
+    import {
+      collection, getDocs, query, where
+    } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-firestore.js";
+
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const status = document.getElementById("status");
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!username || !password) {
+        status.textContent = "Please enter both fields.";
+        return;
+      }
+
+      try {
+        const q = query(collection(db, "users"), where("username", "==", username));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          status.textContent = "Username not found.";
+          return;
+        }
+
+        const userData = querySnapshot.docs[0].data();
+        const email = userData.email;
+
+        await signInWithEmailAndPassword(auth, email, password);
+        localStorage.setItem("username", username);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+
+    document.getElementById("googleLogin").addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, provider);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+
+    document.getElementById("githubLogin").addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, githubProvider);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+
+    document.getElementById("closeBtn").addEventListener("click", () => {
+      window.location.href = "https://ameeraattiah.github.io/nukhba-labs/";
+    });
+  </script>
+
+</body>
+</html>
