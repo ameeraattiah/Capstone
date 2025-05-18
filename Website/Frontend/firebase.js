@@ -14,7 +14,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.4/firebase-
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyDtqyEQIhESMTbbW0nyZMmCjrLy451s6sI",
+  apiKey: "API_Key",
   authDomain: "nlpulse-c22af.firebaseapp.com",
   projectId: "nlpulse-c22af",
   storageBucket: "nlpulse-c22af.appspot.com",
