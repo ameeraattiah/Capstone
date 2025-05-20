@@ -1,91 +1,92 @@
-# **Unlocking the Potential of Arabic NLP: High-Quality Dataset and Preprocessing Tool for Arabic Large Language Models**  
+# **Unlocking the Potential of Arabic NLP: High-Quality Dataset and Preprocessing Framework for Arabic Large Language Models**
 
-This project aims to **build a low-resource, high-quality Arabic dataset** focused on **academic content** while developing an **automated tool** to streamline the data processing pipeline. The system **collects, cleans, filters, annotates, fine-tunes, and evaluates** Arabic text to create structured datasets for **training Arabic Large Language Models (LLMs)** with minimal manual intervention. 🚀
+This project aims to build a **low-resource, high-quality Arabic dataset** focused on **academic content** while providing a **web-based preprocessing framework** called **Nukhba Labs**. The system **collects, cleans, annotates, fine-tunes, and evaluates** Arabic text for training **Arabic Large Language Models (LLMs)** with minimal manual effort.
 
-### 📌 **Project Status:**  
-   - ✅ Data collection, cleaning, and annotation are complete
-   - ✅ Fine-tuning AraBERT is in progress
-   - ⏳ *Upcoming: AI-based evaluation & LLM integration*
 ---
 
-## **Pipeline Overview**  
-Our data processing pipeline follows these main steps:
+### 📌 **Project Status**
+- ✅ Data collection, cleaning, and annotation completed  
+- ✅ Initial LLM fine-tuning using AraBERT  
+- ✅ Web-based framework deployed (Firebase + Flask)  
+- ✅ Evaluation using grammar, lexical, readability, and topic metrics  
+- ⏳ Final LLM integration in progress  
+
+---
+
+## 🔁 **End-to-End Pipeline**
 
 1. **Data Collection**
-   - Sources: **Common Crawl, Web Scraping, Arabic Datasets**  
-   - **Relevant Scripts:** `Download_WARC/download_warc.py`  
+   - Source: Common Crawl, Arabic Datasets  
+   - 🔧 Script: `Download_WARC/download_warc.py`
 
-2. **Data Cleaning** 
-   - Tasks: **Text Cleaning, Blocklist Filtering, Deduplication, ...**  
-   - **Relevant Scripts:** `CommonCrawl_Pipeline/pipeline.py`  
+2. **Data Cleaning**
+   - Includes: Tokenization, HTML Cleaning, Deduplication, Blocklist Filtering  
+   - 🔧 Script: `CommonCrawl_Pipeline/pipeline.py`
 
-3. **Annotation Scoring** 
-   - Classifies text as **Academic or Not Academic** from 0 to 5.
-   - Uses **LLaMA-3.1-8B** for scoring  
-   - **Relevant Scripts:** `Testing_LLM/test.py`  
+3. **Annotation & Scoring**
+   - Scored from 0–5 for academic relevance using **LLaMA-3.1-8B**  
+   - 🔧 Script: `Testing_LLM/test.py`
 
-4. **Fine-Tuning**  
-   - Trains **AraBERT** on the **annotated subset**  
-   - **Relevant Scripts:** `Academic_Specific/Academic.py`  
+4. **Model Fine-Tuning**
+   - Annotated subset used to fine-tune **AraBERT**, which then auto-scores the full dataset  
+   - 🔧 Script: `Academic_Specific/Academic.py`
 
-5. **AI-Based Evaluation**  
-   - Benchmarks: **COPA-ar, HellaSwag-ar, PIQA-ar**  
-   - **Relevant Scripts:** *Upcoming...*
+5. **Evaluation**
+   - Evaluates processed datasets using:
+     - ✅ Grammar scoring (LLM-based)
+     - ✅ Lexical diversity metrics
+     - ✅ Readability analysis
+     - ✅ Topic distribution via BERTopic  
+   - 🔧 Script: `Evaluation/Evaluate.py`  
+   - 🧠 SLURM Jobs: `run_evaluate.sh`
 
-6. **Integration with LLMs**  
-   - Final step: Use the processed data to **fine-tune an LLM or integrate with an existing model**  
-   - **Relevant Scripts:** *Upcoming...*
----
-
-## **Repository Structure & Script Descriptions**  
-
-### **1. `Download_WARC/download_warc.py`** *(Step 1: Data Collection)*
-**Function:** Downloads **WARC files** from **Common Crawl** that contain **Arabic content** before storing them.
-
-**📌 How it Works:**
-- Reads a list of **Common Crawl WARC file paths**.
-- **Checks if the file contains Arabic content** before downloading.
-- Skips already processed files to prevent duplicates.
----
-
-### **2. `CommonCrawl_Pipeline/pipeline.py`** *(Step 2: Data Cleaning)*
-**Function:** Processes raw **WARC files** by extracting, cleaning, filtering, and deduplicating Arabic text.  
-
-**📌 How it Works:**
-- **Extract & Clean:** Extracts text from **WARC files**, removes HTML tags, special characters, and normalizes Arabic.  
-- **Filter & Refine:** Removes **non-Arabic, spam, and low-quality text** using blocklists and quality checks.  
-- **Deduplicate & Enrich:** Eliminates **duplicates with MinHash** and adds metadata like language score and token count.  
-- **Store & Prepare:** Saves the **final high-quality dataset** in JSON format for Arabic NLP model training.  
----
-
-### **3. `Testing_LLM/test.py`**  *(Step 3: Testing Annotation & Scoring)*
-**Function:**  This codes main purpose was to test **different LLM models** to determine which one works best with our **annotation instructions** and to **validate prompt effectiveness** before full integration with the main code `Academic_Specific/Academic.py`. 
-
-**📌 How it Works:**
-- Loads **LLaMA-3.1-8B** to process text.
-- **Generates a score (1-5) based on academic quality**.
-- Uses **structured prompt** to ensure accurate evaluation.
-- Stores **annotated text** for later fine-tuning.
----
-
-### **4. `Academic_Specific/Academic.py`** *(Step 4: Annotation & Fine-Tuning)*  
-
-**Function:** This script first **annotates 5,000 samples from Common Crawl using LLaMA-3** and then **fine-tunes AraBERT** to automatically filter and score the remaining **995,000 samples**. The final output is a **JSON file containing only high-quality academic content**, scored **3 and above**.  
-
-**📌 How it Works:**  
-- Uses **LLaMA-3** to annotate an initial **5,000 samples** for academic relevance.  
-- Fine-tunes **AraBERT** based on these annotations for **automated filtering**.  
-- **AraBERT then classifies and filters** the remaining **995,000 samples**.  
-- Saves the final dataset as a **JSON file containing only academic content (score ≥ 3)**.  
-- Runs on **Ibex HPC** with **DeepSpeed & SLURM** for large-scale processing.  
+6. **LLM Integration**
+   - Final step: Fine-tune or integrate academic dataset into a large Arabic LLM  
+   - 🚧 In progress
 
 ---
 
-### **📌 Key Technologies Used**
-- **Transformers (Hugging Face)** – LLaMA & AraBERT  
-- **DeepSpeed** – Efficient model training  
-- **SLURM** – Parallel job execution on KAUST'S Ibex HPC  
-- **FastText & NLTK** – Language detection & tokenization  
-- **WandB** – Experiment tracking  
+## 🌐 **Nukhba Labs Web Framework**
+
+A full-stack Arabic dataset preprocessing framework.
+
+### 🔑 **Key Features**
+- Firebase Auth (email, Google, GitHub)
+- Drag & drop dataset upload
+- Selectable cleaning steps (tokenize, normalize, remove noise, etc.)
+- Output format selector (CSV, JSON, XLSX)
+- Dataset history and download
+- Backend powered by Flask (Render)
+
+### 📁 Web Files
+| Page | Function |
+|------|----------|
+| `index.html` | Landing page with login + explainer video |
+| `login.html` | Secure login (email + social auth) |
+| `signup.html` | Signup linked to Firebase |
+| `dashboard.html` | View history of cleaned datasets |
+| `upload.html` | Upload interface with cleaning options |
+| `preview.html` | Download confirmation screen |
+| `firebase.js` | Firebase Auth + Firestore config |
+| `app.py` | Flask backend for cleaning |
+| `render.yaml` | Render deployment config |
+| `requirements.txt` | Python backend dependencies |
 
 ---
+
+## 🛠️ **Technologies Used**
+
+- **Transformers** – LLaMA-3, AraBERT via Hugging Face  
+- **DeepSpeed + SLURM** – HPC model training  
+- **Firebase Auth** – Google, GitHub, Email login  
+- **Flask** – Python backend for file processing  
+- **BERTopic** – Topic modeling on academic data  
+- **TextStat, NLTK** – Readability & lexical metrics  
+- **HTML/CSS/JS** – Full frontend UI  
+- **Render** – Deploy backend API  
+- **GitHub Pages** – Deploy frontend  
+
+---
+
+## 📂 Directory Tree (Major Components)
+
