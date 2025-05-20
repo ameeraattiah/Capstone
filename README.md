@@ -24,7 +24,7 @@ This project aims to build a **high-quality Arabic dataset for low-resource LLMs
    - 🔧 Script: `CommonCrawl_Pipeline/pipeline.py`
 
 3. **Annotation & Scoring**
-   - Scored from 0–5 for academic relevance using **LLaMA-3.1-8B**  
+   - Scored from 0–5 for academic relevance using **ALLaM-7B-Instruct**  
    - 🔧 Script: `Testing_LLM/test.py`
 
 4. **Model Fine-Tuning**
