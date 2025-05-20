@@ -3,6 +3,7 @@ import json
 from sklearn.metrics import f1_score
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, Trainer, TrainingArguments, AutoModelForSequenceClassification
 import torch
+torch.cuda.empty_cache()
 from transformers import T5Tokenizer
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
 from sentencepiece import SentencePieceProcessor
@@ -32,32 +33,32 @@ torch.cuda.empty_cache()  # Clears unused GPU memory
 print(f"Using device: {device}")
 
 # Load DeepSpeed configuration from JSON file
-deepspeed_config_path = "/ibex/user/abuhanjt/test/deepspeed_config.json"
+deepspeed_config_path = "/ibex/user/attiahas/Code/Academic/deepspeed_config.json"
 with open(deepspeed_config_path, "r") as ds_file:
     deepspeed_config = json.load(ds_file)
 
 config = {
-    "model_name": "meta-llama/Llama-3.1-8B-Instruct",  # Mistral for annotation
+    "model_name": "ALLaM-AI/ALLaM-7B-Instruct-preview",  # ALLaM for annotation
     "fine_tune_model": "aubmindlab/bert-base-arabertv02",  # AraBERT for classification
     "threshold": 2,  # Minimum score for high-quality content
     "annotation_samples": 5000,  # Increase annotated samples for better learning
     "validation_samples": 1000,  # More validation samples for better evaluation
     "max_samples_to_fine_tune": 4000,  # More fine-tuning samples
-    "epochs": 5,  
-    "batch_size": 1, 
+    "epochs": 5,
+    "batch_size": 1,
     "learning_rate": 1e-5,  # Adjust learning rate for large model
     "gradient_accumulation_steps": 8,  # Helps handle large models with small batch sizes
     "use_deepspeed": True,  # Enable DeepSpeed for efficient training
-    "dataset_dir": "/ibex/user/abuhanjt/test/dataset/",  
-    "output_dir": "/ibex/user/abuhanjt/test/output/",
+    "dataset_dir": "/ibex/user/attiahas/Code/dataset/",
+    "output_dir": "/ibex/user/attiahas/Code/output/",
     "deepspeed_config_path": deepspeed_config_path
 }
 
 # Initialize Weights & Biasis
 wandb.init(
-    project="Academic_Specific",  
-    name="experiment_250", 
-    config=config 
+    project="Academic_Specific",
+    name="experiment_250",
+    config=config
 )
 
 # Ensure output directory exists
@@ -117,7 +118,7 @@ class CustomDataset(Dataset):
         item = {key: val.squeeze(0) for key, val in encoding.items()}
         item["labels"] = torch.tensor(label, dtype=torch.long)
         return item
-    
+
 
 ## Step 1: Load Dataset
 def load_dataset(dataset_file):
@@ -132,9 +133,9 @@ def load_dataset(dataset_file):
             cleaned_data.append({
                 "text": item["text"],
                 "metadata": {
-                    "timestamp": item.get("timestamp", "N/A"), 
+                    "timestamp": item.get("timestamp", "N/A"),
                     "url": item.get("url", "N/A"),
-                    "source": item.get("source", "Unknown") 
+                    "source": item.get("source", "Unknown")
                 }
             })
         else:
@@ -159,11 +160,11 @@ def extract_score_and_evaluation(output):
     return score, evaluation_text
 
 
-## Step 2: Annotate Data Locally and save it 
-# Get SLURM Task ID  
+## Step 2: Annotate Data Locally and save it
+# Get SLURM Task ID
 slurm_task_id = os.getenv("SLURM_ARRAY_TASK_ID", "0")
 # Define unique save path per SLURM task
-ANNOTATION_SAVE_PATH = f"/ibex/user/abuhanjt/test/output/annotations_{slurm_task_id}.json"
+ANNOTATION_SAVE_PATH = f"/ibex/user/attiahas/Code/output/annotations_{slurm_task_id}.json"
 print(f"Annotations will be saved to: {ANNOTATION_SAVE_PATH}")
 
 # Ensure the annotation file exists (creates an empty JSON file if missing)
@@ -180,7 +181,7 @@ def annotate_samples(samples, tokenizer, model):
         try:
             with open(ANNOTATION_SAVE_PATH, "r", encoding="utf-8") as file:
                 annotated_data = json.load(file)
-            
+
             # Ensure `annotated_data` is a **list**
             if not isinstance(annotated_data, list):
                 print("Warning: Annotation file is invalid. Resetting annotations.")
@@ -220,20 +221,20 @@ def annotate_samples(samples, tokenizer, model):
         generation_config = GenerationConfig(
             max_new_tokens=100,
             do_sample=True,
-            temperature=0.5,  
+            temperature=0.5,
             top_k=40,
             top_p=0.85,
-            repetition_penalty=1.25 
+            repetition_penalty=1.25
         )
 
         torch.cuda.empty_cache()
 
         raw_output = tokenizer.decode(
             model.generate(
-                inputs["input_ids"], 
-                attention_mask=inputs["attention_mask"], 
+                inputs["input_ids"],
+                attention_mask=inputs["attention_mask"],
                 generation_config=generation_config
-            )[0], 
+            )[0],
             skip_special_tokens=True
         )
 
@@ -244,7 +245,7 @@ def annotate_samples(samples, tokenizer, model):
             "text": text,
             "scores": score,
             "metadata": sample["metadata"],
-            "evaluation": evaluation  
+            "evaluation": evaluation
         }
 
         annotated_data.append(annotated_sample)
@@ -266,6 +267,15 @@ def annotate_samples(samples, tokenizer, model):
     print(f"Annotation complete. Total samples annotated: {len(annotated_data)}")
     return annotated_data
 
+def count_scores(annotated_data):
+    score_counts = Counter([item["scores"] for item in annotated_data])
+
+    # Print results
+    print("\nAnnotation Score Distribution:")
+    for score in range(6):  # Scores range from 0 to 5
+        print(f"Score {score}: {score_counts.get(score, 0)} samples")
+
+    return score_counts
 
 
 ## Step 3: Fine-Tune AraBERT
@@ -290,10 +300,10 @@ def fine_tune_arabert(train_data, val_data, tokenizer, model):
         logging_dir="./logs",
         logging_steps=100,
         gradient_accumulation_steps=config["gradient_accumulation_steps"],
-        learning_rate=config["learning_rate"], 
-        warmup_steps=500, 
-        weight_decay=0.01, 
-        max_grad_norm=1.0, 
+        learning_rate=config["learning_rate"],
+        warmup_steps=500,
+        weight_decay=0.01,
+        max_grad_norm=1.0,
         deepspeed=config["deepspeed_config_path"],
         lr_scheduler_type="cosine",  # Choose from ['linear', 'cosine', 'constant', etc.]
         bf16=True,
@@ -313,7 +323,7 @@ def fine_tune_arabert(train_data, val_data, tokenizer, model):
 
 
 
-## Step 4: Predict with Fine-Tuned AraBERT     
+## Step 4: Predict with Fine-Tuned AraBERT
 def predict_with_arabert(unlabeled_data, model, tokenizer):
     model.eval()
     model = deepspeed.init_inference(model, dtype=torch.bfloat16)  # Add DeepSpeed for inference
@@ -358,7 +368,7 @@ def main_pipeline():
     dataset_args = [arg for arg in sys.argv if not arg.startswith("--")]
     if len(dataset_args) < 2:
         raise ValueError("No dataset file provided!")
-    dataset_file = dataset_args[1] 
+    dataset_file = dataset_args[1]
 
     print(f"Processing file: {dataset_file}")
     dataset = load_dataset(dataset_file)
@@ -369,26 +379,28 @@ def main_pipeline():
 
     # Load tokenizer for Mistral-7B (text generation)
     tokenizer_mistral = AutoTokenizer.from_pretrained(config["model_name"], trust_remote_code=True)
-    tokenizer_mistral.pad_token = tokenizer_mistral.eos_token  
+    tokenizer_mistral.pad_token = tokenizer_mistral.eos_token
 
-    # Load model for annotation (Mistral)
+    # Load model for annotation
     model_mistral = AutoModelForCausalLM.from_pretrained(
         config["model_name"],
         torch_dtype=torch.float16,  # FP16 to reduce memory usage
-        device_map="auto",  
-        trust_remote_code=True  
+        device_map="auto",
+        trust_remote_code=True
     )
 
     # Annotate data using Mistral
     annotated_data = annotate_samples(sample_data, tokenizer_mistral, model_mistral)
-    print(f"Annotated {len(annotated_data)} samples.")
+    print(f"Annotated {len(annotated_data)} samples, using ", config["model_name"])
 
+    # Count and display score distribution
+    count_scores(annotated_data)
     # Step 3: Load tokenizer and model for fine-tuning AraBERT
     tokenizer_arabert = AutoTokenizer.from_pretrained(config["fine_tune_model"])
     tokenizer_arabert.pad_token = tokenizer_arabert.eos_token if tokenizer_arabert.eos_token else "[PAD]"
 
     model_arabert = AutoModelForSequenceClassification.from_pretrained(
-        config["fine_tune_model"], 
+        config["fine_tune_model"],
         num_labels=6
     ).to(device)
 
