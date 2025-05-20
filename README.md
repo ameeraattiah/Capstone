@@ -86,7 +86,12 @@ A full-stack Arabic dataset preprocessing framework.
 - **Render** – Deploy backend API  
 - **GitHub Pages** – Deploy frontend  
 
+
 ---
 
-## 📂 Directory Tree (Major Components)
+## 🔗 Live Demo
+
+- **Frontend:** [https://ameeraattiah.github.io/nukhba-labs](https://ameeraattiah.github.io/nukhba-labs)  
+- **Backend:** Deployed via Render (`nlpulse-cleaner-backend`)  
+
 
