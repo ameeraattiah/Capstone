@@ -5,7 +5,7 @@
 #SBATCH --time=15:00:00
 #SBATCH --partition=batch
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=64GB  
+#SBATCH --mem=64GB
 #SBATCH --gres=gpu:1
 
 # Set library paths before loading modules
@@ -16,7 +16,7 @@ export CPATH=/sw/rl9g/python/3.11.0/rl9_gnu12.2.0/include:$CPATH
 module purge
 module load python/3.11
 module load cuda/12.2
-module load sqlite/3.40.1  
+module load sqlite/3.40.1
 
 # Ensure Python finds installed packages in $HOME/python_libs
 export PYTHONPATH=$HOME/python_libs/lib/python3.11/site-packages:$PYTHONPATH
@@ -26,8 +26,8 @@ export HF_HOME=$HOME/.cache/huggingface
 export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 
 # Define paths
-DATASET_DIR="/ibex/user/abuhanjt/test/dataset"
-DATA_FILES=($(ls $DATASET_DIR/CulturaX_Arabic_*.json| sort))
+DATASET_DIR="/ibex/user/attiahas/Code/dataset"
+DATA_FILES=($(ls $DATASET_DIR/Arabic_Data_*.json| sort))
 
 # Print debug info
 echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
