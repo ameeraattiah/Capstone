@@ -76,7 +76,7 @@ A full-stack Arabic dataset preprocessing framework.
 
 ## 🛠️ **Technologies Used**
 
-- **Transformers** – LLaMA-3, AraBERT via Hugging Face  
+- **Transformers** – ALLaM-7B-Instruct, AraBERT, LLaMA-3 via Hugging Face  
 - **DeepSpeed + SLURM** – HPC model training  
 - **Firebase Auth** – Google, GitHub, Email login  
 - **Flask** – Python backend for file processing  
