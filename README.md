@@ -1,6 +1,6 @@
 # **Unlocking the Potential of Arabic NLP: High-Quality Dataset and Preprocessing Framework for Arabic Large Language Models**
 
-This project aims to build a **low-resource, high-quality Arabic dataset** focused on **academic content** while providing a **web-based preprocessing framework** called **Nukhba Labs**. The system **collects, cleans, annotates, fine-tunes, and evaluates** Arabic text for training **Arabic Large Language Models (LLMs)** with minimal manual effort.
+This project aims to build a **high-quality Arabic dataset for low-resource LLMs** focused on **academic content** while providing a **web-based preprocessing framework** called **Nukhba Labs**. The system **collects, cleans, annotates, fine-tunes, and evaluates** Arabic text for training **Arabic Large Language Models (LLMs)** with minimal manual effort.
 
 ---
 
